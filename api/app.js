@@ -5,36 +5,20 @@ var bodyParser = require('body-parser');
 
 var app = express();
 
+//importamos las rutas
+var user_routes = require('./routes/user');
+
 //Middlewares(everytime before calling a controller)
 app.use(bodyParser.urlencoded({
     extended:false
 }));
 
-app.use(bodyParser.json()) //transforma a json todo lo que reciba 
+app.use(bodyParser.json()); //transforma a json todo lo que reciba 
 
 //cors
 
 //routes
-app.get('/pruebas',(req,res) => {
-    res.status(200).send({
-        message: 'Test GET action'
-    });
-})
-
-app.post('/pruebas',(req,res) => {
-    //console.log(req.body);
-    var cuerpo = req.body;
-    res.status(200).send({
-        message: 'Test POST action', cuerpo
-    });
-})
-
-app.get('/',(req,res) => {
-    res.status(200).send({
-        message: 'Testing ROOT'
-    });
-})
-
+app.use('/api', user_routes); //middleware para reescribir las routes api/home 
 
 //exportar la configuración 
 module.exports = app;

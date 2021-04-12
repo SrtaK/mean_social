@@ -3,6 +3,7 @@
 var User = require('../models/user'); //loading the model
 var bcrypt = require('bcrypt-nodejs');
 var jwt = require('../services/jwt');
+var paginate = require('mongoose-pagination');
 
 //routes
 function home(req, res){
@@ -93,7 +94,6 @@ function saveUser(req, res){
 }
 
 //Login de usuario
-//Login de usuario
 function login(req, res){
     var params = req.body;
     var email = params.email;
@@ -121,6 +121,25 @@ function login(req, res){
         }
     });
 }
+
+function getUser(req, res){
+    var userId = req.params.id;
+    User.findById(userId, (err, user) => {
+        if(err){
+            return res.status(500).send({
+                message: 'Error en la petición'
+            });
+        }
+        if(!user){ //un id no existe 
+            return res.status(404).send({
+                message: 'El usuario no existe'
+            });
+        }
+        return res.status(200).send({
+            user
+        });
+    }); 
+}
 //exportar en forma de objeto, 
 //así están dispoblies fuera de este fichero
 module.exports = {
@@ -130,6 +149,8 @@ module.exports = {
     cuartoNivel, 
     saveUser,
     login,
+    getUser,
+
 }
 
 

@@ -140,6 +140,128 @@ function getUser(req, res){
         });
     }); 
 }
+
+//presentacion 2, p18
+function getUsers(req, res){
+    //id of the authenticated user
+    var identity_user_id = req.user.sub;
+    var page = 1;
+    if(req.params.page){
+        page = req.params.page;
+    }
+    var items_per_page = 8;
+
+    User.find().sort('_id').paginate(page, items_per_page, (err, users, total) => {
+        if(err){
+            return res.status(500).send({
+                message: 'Error en la petición'
+            });
+        }
+        if(!users){
+            return res.status(404).send({
+                message: 'No hay usuarios disponibles'
+            });
+        }
+        return res.status(200).send({
+            users, 
+            total,
+            pages: Math.ceil(total/items_per_page)
+        });
+    });
+}
+
+function updateUser(req, res){
+    var userId = req.params.id;
+    var update = req.body; //all the object with the information I want to update, except from pw
+    //delete the pw property
+    delete update.password;
+    if(userId != req.user.sub){
+        return res.status(500).send({
+            message: 'No tienes permiso para actualizar los datos de usuario'
+        });
+    }
+    User.findByIdAndUpdate(userId, update, {
+        new: true //returns the modified object not the original without the update
+    }, (error, userUpdated) => {
+        if(error){
+            return res.status(500).send({
+                message: 'Error en la petición'
+            });
+        }
+        if(!userUpdated){
+            return res.status(404).send({
+                message: 'No se ha podido actualizar el usuario'
+            });
+        }
+        return res.status(200).send({
+            user: userUpdated
+        });
+    });
+}
+
+function uploadImage(req, res){
+    var userId = req.params.id;
+    if(req.files){
+        var file_path = req.files.image.path;
+        console.log(file_path);
+        //split the path by /
+        var file_split = file_path.split('\\');
+        //take the third position
+        var file_name = file_split[2]
+        //split the name in order to taKe the file extension
+        //take the 2 position
+        var file_ext = file_name.split('.')[1];
+        console.log(file_ext);
+
+        if(userId != req.user.sub){
+            removeFileUploaded(res, file_path, 'No tiene permiso para subir el fichero')
+        }
+        if(file_ext == 'png' || file_ext == 'jpg' || file_ext == 'jpeg' || file_ext == 'gif'){
+            //upload the file and update the db object
+            User.findByIdAndUpdate(userId, { image: file_name }, {new:true}, (err, userUpdated) => {
+                if(err) {
+                    res.status(500).send({ message: 'Error en la petición' });
+                } 
+                if(!userUpdated) {
+                    res.status(404).send({ message: 'No se ha podido actualizar el usuario' });
+                }
+                //Si todo va bien se devuelve el objeto actualizado
+                return res.status(200).send({ user: userUpdated });
+            });
+        }else{
+            //delete the file and send the error. We need to delete it because the extension uploads it anyway
+            removeFileUploaded(res, file_path, 'Extensión no válida');
+        }
+   
+    }else{
+        return res.status(200).send({
+            message: 'No se han subido los archivos'
+        });
+    }
+}
+
+function removeFileUploaded(res, file_path, message){
+    fs.unlink(file_path, (error) => {
+        return res.status(200).send({
+            message
+        });
+    });
+}
+
+function getImageFile(req, res) {
+    var image_file = req.params.imageFile;
+    var path_file = './uploads/users/' + image_file;
+    fs.exists(path_file, (exists) => {
+        if (exists) {
+            res.sendFile(path.resolve(path_file));
+        } else {
+            res.status(200).send({ message: 'No existe la imagen' });
+        }
+    })
+}
+
+
+
 //exportar en forma de objeto, 
 //así están dispoblies fuera de este fichero
 module.exports = {
@@ -150,6 +272,12 @@ module.exports = {
     saveUser,
     login,
     getUser,
+    getUsers,
+    updateUser,
+    uploadImage,
+    getImageFile, 
+
+
 
 }
 

@@ -74,6 +74,42 @@ function deleteFollow(req, res){
   });
 }
 
+function getFollowedUsers(req, res){
+  //1 Create a userid variable taken from the auth information
+  var userId = req.user.sub;
+  if(req.params.id && req.params.page){
+    //in case both are params are coming in the request
+
+  }
+  var page = 1;
+  if(req.params.page){
+    page = req.params.page;
+  }else{
+    page = req.params.id; //because if the userid is not coming, the comingid is the page
+  }
+  var itemsPerPage = 4;
+  Follow.find({
+    'user': userId
+  }).populate({
+    path: 'followed'
+  }).paginate(page, itemsPerPage, (err, follows, total) => {
+    if(err){
+      return res.status(500).send({
+        message: 'Error al consultar los follows'
+      })
+    }
+    if(!follows){ //no follows
+      return res.status(404).send({
+        message: 'No estás siguiendo a ningún usuario'
+      })
+    }
+    return res.status(200).send({
+      total, 
+      pages: Math.ceil(total / itemsPerPage),
+      follows
+    });
+  });
+}
 
 
 
@@ -84,7 +120,7 @@ module.exports = {
     pruebaFollow,
     saveFollow,
     deleteFollow,
-    
+    getFollowedUsers
 }
 
 

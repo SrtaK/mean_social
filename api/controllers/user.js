@@ -210,13 +210,13 @@ function uploadImage(req, res){
         //Para que funcione, al menos en mi mac
         var file_split = file_path.split('\/');
         //var file_split = file_path.split('\\');
-
+        console.log(file_split);
         //take the third position
-        var file_name = file_split[2]
+        var file_name = file_split[3]
         //split the name in order to taKe the file extension
         //take the 2 position
         var file_ext = file_name.split('.')[1];
-        console.log(file_ext);
+        //console.log(file_ext);
 
         if(userId != req.user.sub){
             removeFileUploaded(res, file_path, 'No tiene permiso para subir el fichero')
@@ -253,19 +253,39 @@ function removeFileUploaded(res, file_path, message){
     });
 }
 
+
 function getImageFile(req, res) {
-    var image_file = req.params;
-    
-    var path_file = './uploads/users/' + image_file;
-    console.log(path_file);
-    fs.exists(path_file, (exists) => {
-      
-        if (exists) {
-            res.sendFile(path.resolve(path_file));
-        } else {
-            res.status(200).send({ message: 'No existe la imagen' });
-        }
-    })
+  var userId = req.params.id;
+  //var user = getUser(req,res);
+  User.findById(userId, (err, user)=>{
+      if(err)
+      {
+          return res.status(500).send({
+              message: 'Error en la petición'
+          });
+      }
+      if(!user)
+      {//un id que no existe
+          return res.status(404).send({
+              message: 'El usuario no existe'
+          });
+      }
+  
+      var imageFile = user.image;
+      var path_file = '../uploads/users/' + imageFile;
+      fs.exists(path_file, (exists) => {
+          if (exists) 
+          {
+              res.sendFile(path.resolve(path_file));
+          } 
+          else  
+          {
+              res.status(200).send({ 
+                  message: 'No existe la imagen' 
+              });
+          }
+      });
+  });
 }
 
 

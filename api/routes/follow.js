@@ -21,5 +21,6 @@ var md_auth = require('../middlewares/authentication');
 //routes
 api.get('/pruebaFollow', md_auth.ensureAuth, FollowController.pruebaFollow);
 api.post('/saveFollow', md_auth.ensureAuth, FollowController.saveFollow);
+api.delete('/deleteFollow', md_auth.ensureAuth, FollowController.deleteFollow);
 
 module.exports = api;

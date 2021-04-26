@@ -53,6 +53,27 @@ function saveFollow(req, res){
   }
 }
 
+function deleteFollow(req, res){
+  //1 Create a userid variable taken form the aauth information
+  var userId = req.user.sub;
+  //2 Create a following variable with the user that was being followed taken from the request URL
+  var followId = req.params.id;
+
+  Follow.find({
+    'user' : userId,
+    'followed' : followId
+  }).remove((err) => {
+      if(err){
+        return res.status(500).send({
+          message: 'Error al eliminar el follow'
+        });
+      }
+      return res.status(200).send({
+        message: 'El follow se ha eliminado'
+      });
+  });
+}
+
 
 
 
@@ -62,6 +83,7 @@ function saveFollow(req, res){
 module.exports = {
     pruebaFollow,
     saveFollow,
+    deleteFollow,
     
 }
 

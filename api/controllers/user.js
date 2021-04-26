@@ -4,6 +4,8 @@ var User = require('../models/user'); //loading the model
 var bcrypt = require('bcrypt-nodejs');
 var jwt = require('../services/jwt');
 var paginate = require('mongoose-pagination');
+var fs = require('fs');
+var path = require('path');
 
 //routes
 function home(req, res){
@@ -205,7 +207,10 @@ function uploadImage(req, res){
         var file_path = req.files.image.path;
         console.log(file_path);
         //split the path by /
-        var file_split = file_path.split('\\');
+        //Para que funcione, al menos en mi mac
+        var file_split = file_path.split('\/');
+        //var file_split = file_path.split('\\');
+
         //take the third position
         var file_name = file_split[2]
         //split the name in order to taKe the file extension
@@ -249,9 +254,12 @@ function removeFileUploaded(res, file_path, message){
 }
 
 function getImageFile(req, res) {
-    var image_file = req.params.imageFile;
+    var image_file = req.params;
+    
     var path_file = './uploads/users/' + image_file;
+    console.log(path_file);
     fs.exists(path_file, (exists) => {
+      
         if (exists) {
             res.sendFile(path.resolve(path_file));
         } else {

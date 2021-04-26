@@ -11,7 +11,7 @@ var md_auth = require('../middlewares/authentication');
 
 //para las imagenes
 var multipart = require('connect-multiparty');
-var md_upload = multipart({uploadDir:'./uploads/users'})
+var md_upload = multipart({uploadDir:'../uploads/users'})
 
 //routes
 api.get('/home', UserController.home);
@@ -24,7 +24,7 @@ api.get('/user/:id', md_auth.ensureAuth, UserController.getUser)
 api.get('/users/:page?', md_auth.ensureAuth, UserController.getUsers)
 api.put('/updateUser/:id?', md_auth.ensureAuth, UserController.updateUser)
 api.post('/upload-image-user/:id',[md_auth.ensureAuth,md_upload] ,UserController.uploadImage)
-api.post('/get-file/:id',UserController.getImageFile)
+api.post('/get-file/:id',[md_auth.ensureAuth,md_upload], UserController.getImageFile)
 
 
 module.exports = api;

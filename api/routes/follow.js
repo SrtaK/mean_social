@@ -20,7 +20,9 @@ var md_auth = require('../middlewares/authentication');
 
 //routes
 api.get('/pruebaFollow', md_auth.ensureAuth, FollowController.pruebaFollow);
-api.post('/saveFollow', md_auth.ensureAuth, FollowController.saveFollow);
-api.delete('/deleteFollow', md_auth.ensureAuth, FollowController.deleteFollow);
+api.post('/follow/save', md_auth.ensureAuth, FollowController.saveFollow);
+api.delete('/follow/delete/:id', md_auth.ensureAuth, FollowController.deleteFollow);
+api.get('/follow/:id', md_auth.ensureAuth, FollowController.getFollowedUsers);
+api.get('/follow/:page?', md_auth.ensureAuth, FollowController.getMyFollows);
 
 module.exports = api;

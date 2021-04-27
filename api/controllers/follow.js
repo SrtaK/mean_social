@@ -53,16 +53,18 @@ function saveFollow(req, res){
   }
 }
 
+//No funciona, no borra de la bd el item, creo que está deprecated el metodo remove
 function deleteFollow(req, res){
   //1 Create a userid variable taken form the aauth information
   var userId = req.user.sub;
   //2 Create a following variable with the user that was being followed taken from the request URL
   var followId = req.params.id;
 
-  Follow.find({
+  Follow.deleteOne({
     'user' : userId,
     'followed' : followId
-  }).remove((err) => {
+  }).deleteOne((err) => { //pruebo esto a ver si funciona
+  //}).remove((err) => {
       if(err){
         return res.status(500).send({
           message: 'Error al eliminar el follow'
@@ -71,7 +73,7 @@ function deleteFollow(req, res){
       return res.status(200).send({
         message: 'El follow se ha eliminado'
       });
-  });
+    })
 }
 
 function getFollowedUsers(req, res){
@@ -111,6 +113,37 @@ function getFollowedUsers(req, res){
   });
 }
 
+function getMyFollows(req, res){
+  //1. Create a userid variable taken from the auth information
+  var userId = req.user.sub;
+  var find = Follow.find({
+    'user': userId
+  });
+  if(req.params.followed){
+    find = follow.find({
+      'followed': req.params.followed
+    });
+  }
+  find.populate('user followed').exec((err, follows) => {
+    if(err){
+      return res.status(500).send({
+        message: 'Error al consultar los follows'
+      })
+    }
+    if(!follows){ //no follows
+      return res.status(404).send({
+        message: 'No estás siguiendo a ningún usuario'
+      })
+    }
+    return res.status(200).send({
+      follows
+    });
+  })
+}
+
+
+
+
 
 
 
@@ -120,7 +153,8 @@ module.exports = {
     pruebaFollow,
     saveFollow,
     deleteFollow,
-    getFollowedUsers
+    getFollowedUsers, 
+    getMyFollows,
 }
 
 

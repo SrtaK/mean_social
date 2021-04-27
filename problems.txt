@@ -1,0 +1,4 @@
+p-7 pdf3
+método remove() is deprecated
+
+nomenclatura de las rutas? 

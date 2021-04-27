@@ -1,11 +1,14 @@
 'user strict'
 
 var User = require('../models/user'); //loading the model
+var Follow = require('../models/follow'); //load the follow model 
+
 var bcrypt = require('bcrypt-nodejs');
 var jwt = require('../services/jwt');
 var paginate = require('mongoose-pagination');
 var fs = require('fs');
 var path = require('path');
+const user = require('../models/user');
 
 //routes
 function home(req, res){
@@ -125,23 +128,70 @@ function login(req, res){
 }
 
 function getUser(req, res){
-    var userId = req.params.id;
-    User.findById(userId, (err, user) => {
-        if(err){
-            return res.status(500).send({
-                message: 'Error en la petición'
-            });
-        }
-        if(!user){ //un id no existe 
-            return res.status(404).send({
-                message: 'El usuario no existe'
-            });
-        }
-        return res.status(200).send({
-            user
+  var userId = req.params.id;
+  User.findById(userId, (err, user) => {
+    if(err){
+        return res.status(500).send({
+            message: 'Error en la petición'
         });
-    }); 
+    }
+    if(!user){ //un id no existe 
+        return res.status(404).send({
+            message: 'El usuario no existe'
+        });
+    }
+    followThisUser(req.user.sub, userId).then((value) => {
+      user.password = undefined;
+      return res.status(200).send({
+        user,
+        following: value.following,
+        followed: value.followed
+      })
+    })
+  }); 
 }
+
+// function followUsersId(iserId){
+//   var follows = 
+//   follows_clean = []; 
+//   follows.forEach((follow) =>{ 
+//     follows_clean.push(follow.followed);
+//     });
+//     return follows_clean;
+
+// }
+
+async function followThisUser(identity_user_id){
+  try{
+    var following = await Follow.findOne({
+      "user": identity_user_id,
+      "followed": user_id
+    }).exec().then((following) => {
+      return following;
+    }).catch((err) => {
+      return handleError(err);
+    });
+
+    console.log(following);
+
+    var followed = await Follow.findOne({
+      "user": user_id,
+      "followed": identity_user_id
+    }).exec().then((followed) => {
+      return followed;
+    }).catch((err) => {
+      return handleError(err);
+    });
+    return {
+      following: following,
+      followed: followed
+    }
+  } catch(error){
+      return handleError(error);
+
+  }
+}
+
 
 //presentacion 2, p18
 function getUsers(req, res){

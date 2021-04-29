@@ -1,4 +1,10 @@
 p-7 pdf3
 método remove() is deprecated
 
-nomenclatura de las rutas? 
+nomenclatura de las rutas?
+//Deprecations
+the options [userNewUrlParse] is not supported
+captura exist deprecated
+
+followUsersId -> sin terminar, mi no entiende
+linea 11 usersController

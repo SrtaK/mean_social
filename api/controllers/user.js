@@ -8,7 +8,7 @@ var jwt = require('../services/jwt');
 var paginate = require('mongoose-pagination');
 var fs = require('fs');
 var path = require('path');
-const user = require('../models/user');
+//const user = require('../models/user');
 
 //routes
 function home(req, res){
@@ -37,6 +37,12 @@ function cuartoNivel(req, res){
         message: 'Hello, you are in the fourth level'
     });
 }
+
+function handleError(err){
+    console.error(err);
+    // handle your error
+}
+
 
 function saveUser(req, res){
     var params = req.body;
@@ -129,6 +135,7 @@ function login(req, res){
 
 function getUser(req, res){
   var userId = req.params.id;
+
   User.findById(userId, (err, user) => {
     if(err){
         return res.status(500).send({
@@ -140,6 +147,7 @@ function getUser(req, res){
             message: 'El usuario no existe'
         });
     }
+
     followThisUser(req.user.sub, userId).then((value) => {
       user.password = undefined;
       return res.status(200).send({
@@ -151,28 +159,33 @@ function getUser(req, res){
   }); 
 }
 
-// function followUsersId(iserId){
-//   var follows = 
-//   follows_clean = []; 
-//   follows.forEach((follow) =>{ 
-//     follows_clean.push(follow.followed);
-//     });
-//     return follows_clean;
 
-// }
+//
+//   var follows_clean = []; 
+//   follows.forEach((follow) =>{    
+//      follows_clean.push(follow.followed);
+//      });
+//      return
+//        follows_clean;
+//    }).catch((err) => {
+//      return handleError(err);
+//    });
+//  }
 
-async function followThisUser(identity_user_id){
+async function followThisUser(identity_user_id, user_id){ //returns a propmise
   try{
     var following = await Follow.findOne({
       "user": identity_user_id,
       "followed": user_id
     }).exec().then((following) => {
+      console.log(following);
+
       return following;
     }).catch((err) => {
       return handleError(err);
     });
 
-    console.log(following);
+    //console.log(following);
 
     var followed = await Follow.findOne({
       "user": user_id,
@@ -214,11 +227,22 @@ function getUsers(req, res){
                 message: 'No hay usuarios disponibles'
             });
         }
-        return res.status(200).send({
-            users, 
-            total,
-            pages: Math.ceil(total/items_per_page)
-        });
+        //empieza 
+        followThisUser(identity_user_id).then((value) => {
+          user.password = undefined;
+          return res.status(200).send({
+            users,
+            users_following: value.following,
+            users_follow_me: value.followed,    
+            pages: Math.ceil(total/items_per_page),
+            //items_per_page: itemsPerPage,
+            //total,
+            
+        
+          })
+        })
+
+        //acaba;
     });
 }
 
@@ -287,7 +311,6 @@ function uploadImage(req, res){
             //delete the file and send the error. We need to delete it because the extension uploads it anyway
             removeFileUploaded(res, file_path, 'Extensión no válida');
         }
-   
     }else{
         return res.status(200).send({
             message: 'No se han subido los archivos'
@@ -338,6 +361,33 @@ function getImageFile(req, res) {
   });
 }
 
+async function getCountFollows(userId){
+  try{
+    var following = await Follow.countDocuments({ 
+      "user": userId
+      }).exec().then.apply((count) =>{
+        return count;
+      }).catch((err) =>{
+        return handleError(err);
+    });
+
+    var followed = await Follow.countDocuments({
+      "followed": userId
+      }).exec().then.apply((count) =>{
+        return count;
+      }).catch((err) =>{
+        return handleError(err);
+    });
+
+    return{
+      following: following, 
+      followed: followed
+    }
+  }catch(err){
+    return handleError(err);
+  }
+}
+
 
 
 //exportar en forma de objeto, 
@@ -354,6 +404,7 @@ module.exports = {
     updateUser,
     uploadImage,
     getImageFile, 
+    getCountFollows,
 
 
 
